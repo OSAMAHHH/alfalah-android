@@ -3,6 +3,9 @@ workflows:
     name: Android Build
     instance_type: mac_mini_m1
 
+    environment:
+      java: 21
+
     scripts:
       - name: Build APK
         script: |
