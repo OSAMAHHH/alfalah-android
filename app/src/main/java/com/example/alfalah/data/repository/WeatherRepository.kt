@@ -1,0 +1,77 @@
+package com.example.alfalah.data.repository
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import android.content.Context
+import android.location.Geocoder
+import java.util.Locale
+
+data class WeatherInfo(
+    val temperature: Int,
+    val description: String,
+    val isDay: Boolean,
+    val code: Int,
+    val city: String
+)
+
+class WeatherRepository {
+    private val client = OkHttpClient()
+    
+    suspend fun getCurrentWeather(lat: Double, lon: Double, context: Context): Result<WeatherInfo> = withContext(Dispatchers.IO) {
+        try {
+            // Get weather via Open-Meteo
+            val weatherUrl = "https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,is_day,weather_code"
+            val weatherRequest = Request.Builder().url(weatherUrl).build()
+            val weatherResponse = client.newCall(weatherRequest).execute()
+            val bodyStr = weatherResponse.body?.string() ?: "{}"
+            val weatherData = JSONObject(bodyStr)
+            
+            val current = weatherData.getJSONObject("current")
+            val temp = current.getDouble("temperature_2m").toInt()
+            val isDay = current.getInt("is_day") == 1
+            val code = current.getInt("weather_code")
+            val desc = getWeatherDescription(code)
+            
+            var cityName = "الموقع الحالي"
+            try {
+                val geocoder = Geocoder(context, Locale("ar"))
+                val addresses = geocoder.getFromLocation(lat, lon, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val address = addresses[0]
+                    val locality = address.locality ?: address.subAdminArea ?: address.adminArea
+                    val countryName = address.countryName
+                    if (locality != null && countryName != null) {
+                        cityName = "$locality، $countryName"
+                    } else if (locality != null) {
+                        cityName = locality
+                    } else if (countryName != null) {
+                        cityName = countryName
+                    }
+                }
+            } catch (e: Exception) {
+                // Ignore geocoder errors and fallback to default
+            }
+            
+            Result.success(WeatherInfo(temp, desc, isDay, code, cityName))
+        } catch (e: Exception) {
+            Result.success(WeatherInfo(25, "غير متوفر", true, 0, "الموقع الحالي"))
+        }
+    }
+
+    private fun getWeatherDescription(code: Int): String {
+        return when (code) {
+            0 -> "صافي"
+            1, 2, 3 -> "غائم جزئياً"
+            45, 48 -> "ضبابي"
+            51, 53, 55 -> "رذاذ"
+            61, 63, 65 -> "ممطر"
+            71, 73, 75 -> "ثلوج"
+            80, 81, 82 -> "زخات مطر"
+            95, 96, 99 -> "عاصفة رعدية"
+            else -> "غير معروف"
+        }
+    }
+}
