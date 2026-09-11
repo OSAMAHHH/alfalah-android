@@ -42,8 +42,12 @@ class FirestoreRepository {
         var query = firestore.collection("crops").limit(limit.toLong())
         if (lastDoc != null) query = query.startAfter(lastDoc)
         val snapshot = query.get().await()
+        android.util.Log.d("CropsDebug", "getCropsPaginated: snapshot size=${snapshot.size()}, isEmpty=${snapshot.isEmpty}, docIds=${snapshot.documents.map { it.id }}")
         Result.success(Pair(snapshot.toObjects(Crop::class.java), snapshot.documents.lastOrNull()))
-    } catch (e: Exception) { Result.failure(e) }
+    } catch (e: Exception) {
+        android.util.Log.e("CropsDebug", "getCropsPaginated FAILED: ${e.javaClass.simpleName}: ${e.message}", e)
+        Result.failure(e)
+    }
 
     // ---------------- Problems ----------------
     suspend fun getProblems(): Result<List<AgriculturalProblem>> = try {
