@@ -122,7 +122,10 @@ fun GuideScreen(
                             hasMore = nextDoc != null
                             errorMsg = null
                         } else {
-                            if (!isLoadMore) errorMsg = "لا توجد بيانات متاحة حالياً، يرجى التأكد من اتصالك بالإنترنت."
+                            if (!isLoadMore) errorMsg =
+                                res.exceptionOrNull()?.javaClass?.simpleName +
+                                " : " +
+                                (res.exceptionOrNull()?.message ?: "Unknown Error")
                         }
                     }
                     "pests" -> {
@@ -134,7 +137,10 @@ fun GuideScreen(
                             hasMore = nextDoc != null
                             errorMsg = null
                         } else {
-                            if (!isLoadMore) errorMsg = "لا توجد بيانات متاحة حالياً، يرجى التأكد من اتصالك بالإنترنت."
+                            if (!isLoadMore) errorMsg =
+                                res.exceptionOrNull()?.javaClass?.simpleName +
+                                " : " +
+                                (res.exceptionOrNull()?.message ?: "Unknown Error")
                         }
                     }
                     "irrigation" -> {
@@ -155,7 +161,7 @@ fun GuideScreen(
                     }
                 }
             } catch (e: Exception) {
-                if (!isLoadMore) errorMsg = "لا توجد بيانات متاحة حالياً، يرجى التأكد من اتصالك بالإنترنت."
+                if (!isLoadMore) errorMsg = "${e.javaClass.simpleName} : ${e.message ?: "Unknown Error"}"
             } finally {
                 if (isLoadMore) isLoadingMore = false else isLoading = false
             }
