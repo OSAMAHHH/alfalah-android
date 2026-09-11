@@ -41,7 +41,7 @@ data class Product(
 @JsonClass(generateAdapter = true)
 @Keep
 data class Crop(
-    @DocumentId var id: String = "",
+    var id: String = "",
     val name: String = "",
     val synonyms: List<String> = emptyList(),
     val description: String = "",
@@ -56,7 +56,7 @@ data class Crop(
 @JsonClass(generateAdapter = true)
 @Keep
 data class AgriculturalProblem(
-    @DocumentId var id: String = "",
+    var id: String = "",
     val cropId: String = "",
     val name: String = "",
     val synonyms: List<String> = emptyList(),
