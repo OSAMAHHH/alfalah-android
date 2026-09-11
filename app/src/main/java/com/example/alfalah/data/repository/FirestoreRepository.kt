@@ -84,8 +84,12 @@ class FirestoreRepository {
         var query = firestore.collection("agricultural_problems").limit(limit.toLong())
         if (lastDoc != null) query = query.startAfter(lastDoc)
         val snapshot = query.get().await()
+        android.util.Log.d("ProblemsDebug", "getProblemsPaginated: snapshot size=${snapshot.size()}, isEmpty=${snapshot.isEmpty}, docIds=${snapshot.documents.map { it.id }}")
         Result.success(Pair(snapshot.toObjects(AgriculturalProblem::class.java), snapshot.documents.lastOrNull()))
-    } catch (e: Exception) { Result.failure(e) }
+    } catch (e: Exception) {
+        android.util.Log.e("ProblemsDebug", "getProblemsPaginated FAILED: ${e.javaClass.simpleName}: ${e.message}", e)
+        Result.failure(e)
+    }
 
     // ---------------- Products ----------------
     suspend fun getProducts(): Result<List<Product>> = try {
